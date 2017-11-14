@@ -1,5 +1,7 @@
 package mx.edu.ittepic.judamedranoba.recordatec;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -27,26 +29,25 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 
 public class bienvenido extends AppCompatActivity {
 
     ListView Lv;
     ArrayList<Lista_entrada> datos;
     FloatingActionButton NuevaTarea;
-    int Posicion = 0;
-
     php uris;
-    //String IP = "http://172.20.1.28/php";
-    //String GET_TAREAS = IP + "/obtener_tareas.php";
-
     WServices hconexion;
-
     String json_string;
+    String id,idalumno;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bienvenido);
+
+        Toast.makeText(getApplicationContext(), "alumno: "+idalumno, Toast.LENGTH_SHORT).show();
 
         uris = new php();
         hconexion = new WServices();
@@ -54,7 +55,6 @@ public class bienvenido extends AppCompatActivity {
         NuevaTarea = (FloatingActionButton) findViewById(R.id.fab_agregar);
 
         datos = new ArrayList<Lista_entrada>();
-        //final DBAdapter db = new DBAdapter(this);
 
         //ExplorandoBD();
         Lv = (ListView) findViewById(R.id.lv_tareas);
@@ -71,14 +71,29 @@ public class bienvenido extends AppCompatActivity {
         Lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                Intent intent = new Intent(bienvenido.this, detallestarea.class);
-                startActivity(intent);
+                hconexion = new WServices();
+                id = (i+3)+"";
+                hconexion.execute(uris.GET_MATERIAS_POR_ID, "2",id);
+                //Intent intent = new Intent(bienvenido.this, detallestarea.class);
+                //startActivity(intent);
             }
         });
 
     }
 
+    public void notificacion(){
+        if(!datos.isEmpty()){
+            Calendar calendar = Calendar.getInstance();
 
+            calendar.set(Calendar.HOUR_OF_DAY,23);
+            calendar.set(Calendar.MINUTE,49);
+            calendar.set(Calendar.SECOND,30);
+            Intent intent = new Intent(getApplicationContext(),Notification_reciever.class);
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(),100,intent,PendingIntent.FLAG_UPDATE_CURRENT);
+            AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+            alarmManager.setRepeating(AlarmManager.RTC_WAKEUP,calendar.getTimeInMillis(),AlarmManager.INTERVAL_DAY,pendingIntent);
+        }
+    }
     public void  LlenandoLista(){
         Lv.setAdapter(new Lista_adaptador(this, R.layout.entrada, datos){
             @Override
@@ -137,6 +152,35 @@ public class bienvenido extends AppCompatActivity {
                                     datos.add(new Lista_entrada(c.getString("materianombre"),c.getString("fecha_entrega"),c.getString("maestronombre")));
                         }
                     }
+                    else{cadena = ""+respuesta;}
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            if (params[1] == "2") {
+                try {
+                    url = new URL(uris.GET_MATERIAS_POR_ID+"?id="+id);
+                    HttpURLConnection connection = null; // Abrir conexion
+                    connection = (HttpURLConnection) url.openConnection();
+                    int respuesta = 0;
+                    respuesta = connection.getResponseCode();
+                    InputStream inputStream = null;
+                    inputStream = connection.getInputStream();
+                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+                    StringBuilder stringBuilder = new StringBuilder();
+
+                    if (respuesta == HttpURLConnection.HTTP_OK) {
+                        while ((json_string = bufferedReader.readLine()) != null) {
+                            stringBuilder.append(json_string + "\n");
+                        }
+                        bufferedReader.close();
+                        inputStream.close();
+                        connection.disconnect();
+                        String temporal = stringBuilder.toString();
+                        JSONObject jsonObj = new JSONObject(temporal);
+                        JSONObject alum = jsonObj.getJSONObject("alumno");
+                        cadena +="";
+                        }
                     else{cadena = ""+respuesta;}
                 } catch (Exception e) {
                     e.printStackTrace();

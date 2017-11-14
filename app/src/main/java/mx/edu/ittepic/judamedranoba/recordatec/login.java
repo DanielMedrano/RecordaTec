@@ -23,16 +23,9 @@ public class login extends AppCompatActivity {
 
     Button Iniciar;
     EditText ncon,nip;
-
     php uris;
-
-    /*
-    String IP = "http://172.20.1.28/php";
-    String GET_BY_ID = IP + "/obtener_alumnos_por_id.php";
-*/
     WServices hconexion;
-
-    String json_string,id,lnip,ip;
+    String json_string,id,lnip;
     boolean valida = true;
 
     @Override
@@ -41,11 +34,6 @@ public class login extends AppCompatActivity {
         setContentView(R.layout.activity_login);
 
         uris = new php();
-
-        WifiManager wm = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
-        ip = Formatter.formatIpAddress(wm.getConnectionInfo().getIpAddress());
-
-        Toast.makeText(getApplicationContext(), "ip: "+uris.RUTA, Toast.LENGTH_SHORT).show();
         ncon = (EditText) (findViewById(R.id.edt_numcontrol));
         nip = (EditText) (findViewById(R.id.edt_password));
         Iniciar = (Button) findViewById(R.id.btn_iniciar);
@@ -117,7 +105,6 @@ public class login extends AppCompatActivity {
             if(s.isEmpty()){
                 valida = false;
             }
-            Toast.makeText(getApplicationContext(), s, Toast.LENGTH_SHORT).show();
             valida = true;
         }
 
