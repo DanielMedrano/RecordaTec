@@ -1,10 +1,13 @@
 package mx.edu.ittepic.judamedranoba.recordatec;
 
 import android.app.AlarmManager;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.NotificationCompat;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -39,16 +42,30 @@ public class bienvenido extends AppCompatActivity {
     php uris;
     WServices hconexion;
     String json_string;
-    String id,idalumno;
+    String _id,idalumno;
+    final long EXECUTION_TIME = 60000; // 1 minuto
+/*
+    @Override
+    protected void onResume(){
+        super.onResume();
+        final Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override public void run() {
 
-
+               notificacion();
+                Toast.makeText(getApplicationContext(), "Refrescar", Toast.LENGTH_SHORT).show();
+                handler.postDelayed(this, EXECUTION_TIME);
+            }
+        }, EXECUTION_TIME);
+    }
+*/
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bienvenido);
+        idalumno = getIntent().getStringExtra("idalumno");
 
-        Toast.makeText(getApplicationContext(), "alumno: "+idalumno, Toast.LENGTH_SHORT).show();
-
+        Toast.makeText(getApplicationContext(), "idalum = "+idalumno, Toast.LENGTH_SHORT).show();
         uris = new php();
         hconexion = new WServices();
         hconexion.execute(uris.GET_TAREAS, "1");
@@ -71,27 +88,44 @@ public class bienvenido extends AppCompatActivity {
         Lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                hconexion = new WServices();
-                id = (i+3)+"";
-                hconexion.execute(uris.GET_MATERIAS_POR_ID, "2",id);
-                //Intent intent = new Intent(bienvenido.this, detallestarea.class);
-                //startActivity(intent);
+                _id = datos.get(i).getTextoId();
+                Toast.makeText(getApplicationContext(), "id ="+_id, Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(bienvenido.this, detallestarea.class);
+                intent.putExtra("id",_id);
+                intent.putExtra("idalumno",idalumno);
+                startActivity(intent);
             }
         });
 
     }
 
     public void notificacion(){
-        if(!datos.isEmpty()){
-            Calendar calendar = Calendar.getInstance();
+        if(datos.isEmpty()){
+            NotificationCompat.Builder mBuilder;
+            NotificationManager mNotifyMgr =(NotificationManager) getApplicationContext().getSystemService(NOTIFICATION_SERVICE);
 
-            calendar.set(Calendar.HOUR_OF_DAY,23);
-            calendar.set(Calendar.MINUTE,49);
-            calendar.set(Calendar.SECOND,30);
-            Intent intent = new Intent(getApplicationContext(),Notification_reciever.class);
-            PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(),100,intent,PendingIntent.FLAG_UPDATE_CURRENT);
-            AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
-            alarmManager.setRepeating(AlarmManager.RTC_WAKEUP,calendar.getTimeInMillis(),AlarmManager.INTERVAL_DAY,pendingIntent);
+            int icono = R.mipmap.ic_launcher;
+            Intent i=new Intent(this, bienvenido.class);
+            i.putExtra("idalumno",idalumno);
+            PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, i, 0);
+
+            mBuilder = (NotificationCompat.Builder) new NotificationCompat.Builder(getApplicationContext())
+                    .setContentIntent(pendingIntent)
+                    .setSmallIcon(icono)
+                    .setContentTitle("Tareas pendientes")
+                    .setContentText("No olvides enviar tus tareas")
+                    .setPriority(1)
+                    .setColor(98149252)
+                    .setLights(0xff00ff00, 300, 100)
+                    .setVibrate(new long[] {100, 250, 100, 500})
+                    .setAutoCancel(true);
+
+
+
+            mNotifyMgr.notify(1, mBuilder.build());
+        }
+        else {
+            Toast.makeText(getApplicationContext(), "Esta vacia", Toast.LENGTH_SHORT).show();
         }
     }
     public void  LlenandoLista(){
@@ -110,6 +144,10 @@ public class bienvenido extends AppCompatActivity {
                     TextView maestro = (TextView) view.findViewById(R.id.tv_maestro);
                     if (maestro != null)
                         maestro.setText(((Lista_entrada) entrada).getTextoMaestro());
+
+                    TextView id = (TextView) view.findViewById(R.id.tv_id);
+                    if (id != null)
+                        id.setText(((Lista_entrada) entrada).getTextoId());
                 }
             }
         });
@@ -121,7 +159,6 @@ public class bienvenido extends AppCompatActivity {
         @Override
         protected String doInBackground(String... params) {
             String cadena="";
-            String ruta="";
             if (params[1] == "1") {
                 try {
                     url = new URL(uris.GET_TAREAS);
@@ -149,39 +186,11 @@ public class bienvenido extends AppCompatActivity {
                         // looping through All Contacts
                         for (int i = 0; i < tareas.length(); i++) {
                             JSONObject c = tareas.getJSONObject(i);
-                                    datos.add(new Lista_entrada(c.getString("materianombre"),c.getString("fecha_entrega"),c.getString("maestronombre")));
+                                cadena+=c.getString("materianombre");
+                                    datos.add(new Lista_entrada(c.getString("materianombre"),c.getString("fecha_entrega"),c.getString("maestronombre"),c.getString("id")));
                         }
                     }
-                    else{cadena = ""+respuesta;}
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-            if (params[1] == "2") {
-                try {
-                    url = new URL(uris.GET_MATERIAS_POR_ID+"?id="+id);
-                    HttpURLConnection connection = null; // Abrir conexion
-                    connection = (HttpURLConnection) url.openConnection();
-                    int respuesta = 0;
-                    respuesta = connection.getResponseCode();
-                    InputStream inputStream = null;
-                    inputStream = connection.getInputStream();
-                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
-                    StringBuilder stringBuilder = new StringBuilder();
-
-                    if (respuesta == HttpURLConnection.HTTP_OK) {
-                        while ((json_string = bufferedReader.readLine()) != null) {
-                            stringBuilder.append(json_string + "\n");
-                        }
-                        bufferedReader.close();
-                        inputStream.close();
-                        connection.disconnect();
-                        String temporal = stringBuilder.toString();
-                        JSONObject jsonObj = new JSONObject(temporal);
-                        JSONObject alum = jsonObj.getJSONObject("alumno");
-                        cadena +="";
-                        }
-                    else{cadena = ""+respuesta;}
+                    else{cadena = "";}
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -196,6 +205,8 @@ public class bienvenido extends AppCompatActivity {
         @Override
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
+            if(!s.isEmpty()){notificacion();}
+
 
         }
 

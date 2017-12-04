@@ -7,7 +7,7 @@
     tools:context="mx.edu.ittepic.judamedranoba.recordatec.agregartarea">
 
     <ListView
-        android:id="@+id/lv_materias"
+        android:id="@+id/lv_mat"
         android:layout_width="368dp"
         android:layout_height="495dp"
         tools:layout_editor_absoluteX="8dp"

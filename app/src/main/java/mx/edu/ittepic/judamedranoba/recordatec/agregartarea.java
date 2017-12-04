@@ -21,8 +21,11 @@ public class agregartarea extends AppCompatActivity {
     php uris;
     WServices hconexion;
     String json_string;
-    ArrayList<Lista_entrada> datos;
+    ArrayList<Lista_entrada2> datos;
     ListView Lv;
+
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,29 +35,29 @@ public class agregartarea extends AppCompatActivity {
         hconexion = new WServices();
         hconexion.execute(uris.GET_MATERIAS, "1");
 
-        datos = new ArrayList<Lista_entrada>();
+        datos = new ArrayList<Lista_entrada2>();
 
         //ExplorandoBD();
-        Lv = (ListView) findViewById(R.id.lv_materias);
+        Lv = (ListView) findViewById(R.id.lv_mat);
         LlenandoLista();
     }
 
     public void  LlenandoLista(){
-        Lv.setAdapter(new Lista_adaptador(this, R.layout.entrada, datos){
+        Lv.setAdapter(new Lista_adaptador(this, R.layout.entradados, datos){
             @Override
             public void onEntrada(Object entrada, View view) {
                 if (entrada != null) {
                     TextView materia = (TextView) view.findViewById(R.id.tv_materia);
                     if (materia != null)
-                        materia.setText(((Lista_entrada) entrada).getTextoMateria());
+                        materia.setText(((Lista_entrada2) entrada).getTextoMateria());
 
                     TextView fechaentrega = (TextView) view.findViewById(R.id.tv_fechaentrega);
                     if (fechaentrega != null)
-                        fechaentrega.setText(((Lista_entrada) entrada).getTextoFechaEntrega());
+                        fechaentrega.setText(((Lista_entrada2) entrada).getTextoFechaEntrega());
 
                     TextView maestro = (TextView) view.findViewById(R.id.tv_maestro);
                     if (maestro != null)
-                        maestro.setText(((Lista_entrada) entrada).getTextoMaestro());
+                        maestro.setText(((Lista_entrada2) entrada).getTextoMaestro());
                 }
             }
         });
@@ -94,7 +97,7 @@ public class agregartarea extends AppCompatActivity {
                         // looping through All Contacts
                         for (int i = 0; i < tareas.length(); i++) {
                             JSONObject c = tareas.getJSONObject(i);
-                            datos.add(new Lista_entrada(c.getString("nombre"),c.getString("clave"),c.getString("maestron")));
+                            datos.add(new Lista_entrada2(c.getString("nombre"),c.getString("clave"),c.getString("maestron")));
                         }
                     }
                     else{cadena = ""+respuesta;}

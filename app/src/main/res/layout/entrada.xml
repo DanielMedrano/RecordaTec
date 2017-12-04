@@ -10,6 +10,13 @@
         android:orientation="vertical">
 
         <TextView
+            android:id="@+id/tv_id"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Id"
+            android:textSize="8sp" />
+
+        <TextView
             android:id="@+id/tv_materia"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

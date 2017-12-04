@@ -1,10 +1,8 @@
 package mx.edu.ittepic.judamedranoba.recordatec;
 
 import android.content.Intent;
-import android.net.wifi.WifiManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.text.format.Formatter;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -26,7 +24,7 @@ public class login extends AppCompatActivity {
     php uris;
     WServices hconexion;
     String json_string,id,lnip;
-    boolean valida = true;
+    boolean valida = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,15 +41,17 @@ public class login extends AppCompatActivity {
             public void onClick(View view) {
                 id = ncon.getText().toString();
                 lnip = nip.getText().toString();
+                Toast.makeText(getApplicationContext(), uris.IP2, Toast.LENGTH_SHORT).show();
                 if(id.isEmpty()){ Toast.makeText(getApplicationContext(), "LLENE EL ID", Toast.LENGTH_SHORT).show(); return;}
                 hconexion = new WServices();
-                hconexion.execute(uris.GET_ALUMNO_BY_ID, "1",id,lnip);
-                if(valida) {
+                hconexion.execute(uris.GET_ALUMNO_BY_ID, "1");
+               /* if(valida) {
                     Intent intent = new Intent(login.this, bienvenido.class);
+                    intent.putExtra("idalumno",id);
                     startActivity(intent);
                 }
                 else{Toast.makeText(getApplicationContext(), "Usuario y/o contraseña incorrecto", Toast.LENGTH_SHORT).show();}
-            }
+        */    }
         });
 
     }
@@ -62,7 +62,6 @@ public class login extends AppCompatActivity {
         @Override
         protected String doInBackground(String... params) {
             String cadena="";
-            String ruta="";
             if (params[1] == "1") {
                 try {
                     url = new URL(uris.GET_ALUMNO_BY_ID+"?id="+id+"&nip="+lnip);
@@ -85,9 +84,9 @@ public class login extends AppCompatActivity {
                         String temporal = stringBuilder.toString();
                         JSONObject jsonObj = new JSONObject(temporal);
                         JSONObject alum = jsonObj.getJSONObject("alumno");
-                        cadena += "ID: " + alum.getString("id")+ "nip: "+alum.getString("nip");
+                        cadena += "ID: " + alum.getString("id") + "nip: " + alum.getString("nip");
                     }
-                    else{cadena = "";}
+                    else {cadena="";}
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -103,9 +102,14 @@ public class login extends AppCompatActivity {
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
             if(s.isEmpty()){
+                Toast.makeText(getApplicationContext(), "Usuario y/o contraseña incorrecto", Toast.LENGTH_SHORT).show();
                 valida = false;
             }
-            valida = true;
+            else{
+            Intent intent = new Intent(login.this, bienvenido.class);
+            intent.putExtra("idalumno",id);
+            startActivity(intent);
+            valida = true;}
         }
 
         @Override
